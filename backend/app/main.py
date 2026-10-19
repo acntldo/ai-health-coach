@@ -5,6 +5,7 @@ from fastapi import FastAPI
 
 from . import models  # noqa: F401  (importing registers the tables)
 from .database import Base, engine
+from .routers import days, entries, messages
 
 # fine at this size. a bigger app would use migrations instead
 Base.metadata.create_all(bind=engine)
@@ -27,6 +28,10 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
     lifespan=lifespan,
 )
+
+app.include_router(days.router)
+app.include_router(entries.router)
+app.include_router(messages.router)
 
 
 @app.get("/api/health")
