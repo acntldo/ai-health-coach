@@ -218,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# local secrets, dependencies and databases
+.env
+node_modules/
+*.db
+.venv/
+.vercel/
