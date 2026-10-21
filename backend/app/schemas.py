@@ -1,7 +1,7 @@
 from datetime import date, datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, StringConstraints
 
 
 class FoodEntryOut(BaseModel):
@@ -35,3 +35,16 @@ class MessageOut(BaseModel):
     role: Literal["user", "coach"]
     text: str
     created_at: datetime
+
+
+
+class ChatRequest(BaseModel):
+    # whitespace is trimmed first, so a message of only spaces is rejected
+    message: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)]
+    day: date  # the user's local date, sent by the browser
+
+
+class ChatResponse(BaseModel):
+    reply: str
+    entries: list[FoodEntryOut]  # the foods this message logged
+    day_total: int
