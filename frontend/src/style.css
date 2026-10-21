@@ -1,23 +1,26 @@
 /* colors live in variables so a theme only has to swap them.
-   the palette follows ios: grouped gray background, white cards, hairline separators */
+   soft gradient behind everything, white floating cards on top */
 :root {
   color-scheme: light dark;
 
-  --desk: #e5e5ea;
-  --bg: #f2f2f7;
+  /* mint and cream wash with a plain base color underneath */
+  --canvas:
+    radial-gradient(60% 50% at 12% 8%, #e4f3ea 0%, transparent 70%),
+    radial-gradient(45% 45% at 92% 12%, #fbf1df 0%, transparent 70%),
+    radial-gradient(60% 60% at 85% 95%, #e3edf9 0%, transparent 70%),
+    #f4f6f2;
+  --card: rgba(255, 255, 255, 0.78);
   --surface: #ffffff;
-  --ink: #000000;
-  --muted: #6c6c70;
-  --line: rgba(60, 60, 67, 0.18);
+  --shadow: 0 6px 24px rgba(30, 60, 45, 0.09);
+  --ink: #111713;
+  --muted: #66706a;
+  --line: rgba(60, 70, 65, 0.16);
   --accent: #2f6f4f;
   --accent-text: #2f6f4f; /* green used for text, lighter in dark mode for contrast */
   --accent-ink: #ffffff;
-  --accent-soft: #e3efe8;
+  --accent-soft: #e0efe6;
   --danger: #d70015;
-  --bubble-other: #e9e9eb;
-  --bubble-other-ink: #000000;
-  --bar-bg: rgba(249, 249, 249, 0.82);
-  --radius: 12px;
+  --bar-bg: rgba(250, 251, 249, 0.82);
 
   --high-bg: #dff0e5;
   --high-ink: #1f5a3a;
@@ -32,20 +35,23 @@
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    --desk: #1a1a1c;
-    --bg: #000000;
-    --surface: #1c1c1e;
-    --ink: #ffffff;
-    --muted: #a1a1a6;
-    --line: rgba(84, 84, 88, 0.6);
+    --canvas:
+      radial-gradient(60% 50% at 12% 8%, #123023 0%, transparent 70%),
+      radial-gradient(45% 45% at 92% 12%, #1a2a1f 0%, transparent 70%),
+      radial-gradient(60% 60% at 85% 95%, #0d2230 0%, transparent 70%),
+      #060908;
+    --card: rgba(30, 34, 32, 0.72);
+    --surface: #1c1f1d;
+    --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+    --ink: #f2f5f3;
+    --muted: #a0aaa4;
+    --line: rgba(255, 255, 255, 0.12);
     --accent: #2f7a54;
     --accent-text: #5fbf8a;
     --accent-ink: #ffffff;
     --accent-soft: #1f3328;
     --danger: #ff453a;
-    --bubble-other: #2c2c2e;
-    --bubble-other-ink: #ffffff;
-    --bar-bg: rgba(28, 28, 30, 0.82);
+    --bar-bg: rgba(24, 28, 26, 0.82);
 
     --high-bg: #1f3b2c;
     --high-ink: #8fd4ac;
@@ -60,20 +66,23 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --desk: #1a1a1c;
-  --bg: #000000;
-  --surface: #1c1c1e;
-  --ink: #ffffff;
-  --muted: #a1a1a6;
-  --line: rgba(84, 84, 88, 0.6);
+  --canvas:
+    radial-gradient(60% 50% at 12% 8%, #123023 0%, transparent 70%),
+    radial-gradient(45% 45% at 92% 12%, #1a2a1f 0%, transparent 70%),
+    radial-gradient(60% 60% at 85% 95%, #0d2230 0%, transparent 70%),
+    #060908;
+  --card: rgba(30, 34, 32, 0.72);
+  --surface: #1c1f1d;
+  --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  --ink: #f2f5f3;
+  --muted: #a0aaa4;
+  --line: rgba(255, 255, 255, 0.12);
   --accent: #2f7a54;
   --accent-text: #5fbf8a;
   --accent-ink: #ffffff;
   --accent-soft: #1f3328;
   --danger: #ff453a;
-  --bubble-other: #2c2c2e;
-  --bubble-other-ink: #ffffff;
-  --bar-bg: rgba(28, 28, 30, 0.82);
+  --bar-bg: rgba(24, 28, 26, 0.82);
 
   --high-bg: #1f3b2c;
   --high-ink: #8fd4ac;
@@ -93,7 +102,8 @@
 
 body {
   margin: 0;
-  background: var(--desk);
+  min-height: 100dvh;
+  background: var(--canvas);
   color: var(--ink);
   /* renders as san francisco on iphone and mac, segoe ui on windows */
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif;
