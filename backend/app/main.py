@@ -5,7 +5,7 @@ from fastapi import FastAPI
 
 from . import models  # noqa: F401  (importing registers the tables)
 from .database import Base, engine
-from .routers import days, entries, messages
+from .routers import chat, days, entries, messages
 
 # fine at this size. a bigger app would use migrations instead
 Base.metadata.create_all(bind=engine)
