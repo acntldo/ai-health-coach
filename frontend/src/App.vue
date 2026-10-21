@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
+import LeafLogo from './components/LeafLogo.vue'
 import ThemeToggle from './components/ThemeToggle.vue'
 import { refreshTodayTotal, store } from './store'
 
@@ -38,17 +39,10 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
       <router-view />
     </main>
 
-    <!-- a tab bar on phones, a sidebar on computers -->
+    <!-- a tab bar on phones, a slim icon rail on computers -->
     <nav class="tabs" aria-label="Main">
-      <div class="side-brand">
-        <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
-          <rect width="64" height="64" rx="14" fill="#2f6f4f" />
-          <path d="M18 46C18 30 28 18 46 18C46 36 36 46 18 46Z" fill="#fff" />
-          <path d="M18 46L34 30" stroke="#2f6f4f" stroke-width="3" stroke-linecap="round" fill="none" />
-        </svg>
-        <span>AI Health Coach</span>
-      </div>
-      <router-link to="/">
+      <LeafLogo class="rail-logo" />
+      <router-link to="/" aria-label="Chat" title="Chat">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path
             d="M5 4.5h14a2.5 2.5 0 0 1 2.5 2.5v8a2.5 2.5 0 0 1-2.5 2.5h-6.5L8 21v-3.5H5A2.5 2.5 0 0 1 2.5 15V7A2.5 2.5 0 0 1 5 4.5Z"
@@ -56,15 +50,16 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
         </svg>
         <span>Chat</span>
       </router-link>
-      <router-link to="/history">
+      <router-link to="/history" aria-label="History" title="History">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="12" r="9" />
           <path d="M12 7v5l3 2" />
         </svg>
         <span>History</span>
       </router-link>
-      <span class="side-toggle"><ThemeToggle /></span>
     </nav>
+
+    <span class="float-toggle"><ThemeToggle /></span>
   </div>
 </template>
 
@@ -75,7 +70,6 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
   height: 100dvh;
   max-width: 640px;
   margin: 0 auto;
-  background: var(--bg);
 }
 
 .top {
@@ -87,6 +81,7 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
   background: var(--accent);
   color: var(--accent-ink);
   border-radius: 0 0 22px 22px;
+  box-shadow: var(--shadow);
 }
 
 .top-left {
@@ -102,9 +97,9 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
 }
 
 /* these belong to the computer layout */
+.rail-logo,
 .screen-title,
-.side-brand,
-.side-toggle {
+.float-toggle {
   display: none;
 }
 
@@ -170,22 +165,28 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
   stroke-linejoin: round;
 }
 
-/* computers: a sidebar on the left, the total in a bar across the top of the content */
+/* computers: a floating icon rail, the screen title and total up top, the toggle in the corner.
+   the right-hand column keeps the corner toggle clear of the content */
 @media (min-width: 900px) {
   .app {
     display: grid;
-    grid-template-columns: 248px minmax(0, 1fr);
+    grid-template-columns: 64px minmax(0, 1fr) 52px;
     grid-template-rows: auto minmax(0, 1fr);
+    gap: 12px 20px;
     max-width: none;
     margin: 0;
+    padding: 16px;
   }
 
   .top {
     grid-column: 2;
     grid-row: 1;
     align-items: center;
-    padding: 14px 28px;
+    padding: 4px;
+    background: transparent;
+    color: var(--ink);
     border-radius: 0;
+    box-shadow: none;
   }
 
   .brand,
@@ -195,7 +196,7 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
 
   .screen-title {
     display: block;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: -0.02em;
   }
@@ -204,10 +205,16 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
     display: flex;
     align-items: baseline;
     gap: 8px;
+    padding: 8px 18px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
   }
 
   .total-number {
-    font-size: 1.75rem;
+    display: inline;
+    font-size: 1.5rem;
   }
 
   .page {
@@ -219,53 +226,59 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
     grid-column: 1;
     grid-row: 1 / -1;
     flex-direction: column;
-    gap: 2px;
-    padding: 20px 12px 16px;
-    border-top: 0;
-    border-right: 0.5px solid var(--line);
-  }
-
-  .side-brand {
-    display: flex;
     align-items: center;
     gap: 10px;
-    padding: 4px 12px 20px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    padding: 16px 0;
+    background: var(--card);
+    border: 0;
+    border-radius: 24px;
+    box-shadow: var(--shadow);
   }
 
-  .logo {
-    width: 30px;
-    height: 30px;
-    flex: none;
+  .rail-logo {
+    display: block;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 14px;
   }
 
   .tabs a {
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 10px;
-    padding: 9px 12px;
-    border-radius: 9px;
-    font-size: 0.95rem;
+    flex: none;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .tabs a span {
+    display: none; /* icons only, the names show as tooltips */
   }
 
   .tabs a:hover {
-    background: color-mix(in srgb, currentColor 8%, transparent);
+    background: color-mix(in srgb, currentColor 10%, transparent);
   }
 
   .tabs a.router-link-exact-active {
     background: var(--accent-soft);
   }
 
-  .tabs a svg {
-    width: 22px;
-    height: 22px;
+  .float-toggle {
+    display: block;
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 10;
+    color: var(--ink);
   }
 
-  .side-toggle {
-    display: block;
-    margin: auto 0 0 12px;
-    color: var(--muted);
+  .float-toggle :deep(.toggle) {
+    width: 44px;
+    height: 44px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
   }
 }
 </style>
