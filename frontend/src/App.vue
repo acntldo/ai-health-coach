@@ -1,7 +1,12 @@
 <script setup>
-import { onBeforeUnmount, onMounted } from 'vue'
+import { computed, onBeforeUnmount, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 
+import ThemeToggle from './components/ThemeToggle.vue'
 import { refreshTodayTotal, store } from './store'
+
+const route = useRoute()
+const screenTitle = computed(() => (route.path === '/history' ? 'History' : 'Chat'))
 
 // refresh when the tab comes back into view, so the total is right after midnight too
 function onVisible() {
@@ -18,12 +23,14 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
 <template>
   <div class="app">
     <header class="top">
-      <div class="top-inner">
+      <div class="top-left">
         <span class="brand">AI Health Coach</span>
-        <div class="total" aria-live="polite">
-          <span class="total-number">{{ store.todayTotal }}</span>
-          <span class="total-label">kcal today</span>
-        </div>
+        <span class="screen-title">{{ screenTitle }}</span>
+        <span class="top-toggle"><ThemeToggle /></span>
+      </div>
+      <div class="total" aria-live="polite">
+        <span class="total-number">{{ store.todayTotal }}</span>
+        <span class="total-label">kcal today</span>
       </div>
     </header>
 
@@ -31,7 +38,16 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
       <router-view />
     </main>
 
+    <!-- a tab bar on phones, a sidebar on computers -->
     <nav class="tabs" aria-label="Main">
+      <div class="side-brand">
+        <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+          <rect width="64" height="64" rx="14" fill="#2f6f4f" />
+          <path d="M18 46C18 30 28 18 46 18C46 36 36 46 18 46Z" fill="#fff" />
+          <path d="M18 46L34 30" stroke="#2f6f4f" stroke-width="3" stroke-linecap="round" fill="none" />
+        </svg>
+        <span>AI Health Coach</span>
+      </div>
       <router-link to="/">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path
@@ -47,6 +63,7 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
         </svg>
         <span>History</span>
       </router-link>
+      <span class="side-toggle"><ThemeToggle /></span>
     </nav>
   </div>
 </template>
@@ -63,23 +80,32 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
 
 .top {
   flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   padding: calc(12px + env(safe-area-inset-top)) 20px 16px;
   background: var(--accent);
   color: var(--accent-ink);
   border-radius: 0 0 22px 22px;
 }
 
-.top-inner {
+.top-left {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
+  gap: 10px;
 }
 
 .brand {
   font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  opacity: 0.95;
+}
+
+/* these belong to the computer layout */
+.screen-title,
+.side-brand,
+.side-toggle {
+  display: none;
 }
 
 .total {
@@ -134,7 +160,7 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
   color: var(--accent-text);
 }
 
-.tabs svg {
+.tabs a svg {
   width: 26px;
   height: 26px;
   fill: none;
@@ -144,15 +170,102 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisible
   stroke-linejoin: round;
 }
 
-/* on a computer the app sits in a rounded window in the middle of the screen */
-@media (min-width: 700px) {
+/* computers: a sidebar on the left, the total in a bar across the top of the content */
+@media (min-width: 900px) {
   .app {
-    height: min(calc(100dvh - 48px), 880px);
-    margin: 24px auto;
-    overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: 28px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    max-width: none;
+    margin: 0;
+  }
+
+  .top {
+    grid-column: 2;
+    grid-row: 1;
+    align-items: center;
+    padding: 14px 28px;
+    border-radius: 0;
+  }
+
+  .brand,
+  .top-toggle {
+    display: none;
+  }
+
+  .screen-title {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .total {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .total-number {
+    font-size: 1.75rem;
+  }
+
+  .page {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .tabs {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    flex-direction: column;
+    gap: 2px;
+    padding: 20px 12px 16px;
+    border-top: 0;
+    border-right: 0.5px solid var(--line);
+  }
+
+  .side-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 12px 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .logo {
+    width: 30px;
+    height: 30px;
+    flex: none;
+  }
+
+  .tabs a {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 9px;
+    font-size: 0.95rem;
+  }
+
+  .tabs a:hover {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+  }
+
+  .tabs a.router-link-exact-active {
+    background: var(--accent-soft);
+  }
+
+  .tabs a svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .side-toggle {
+    display: block;
+    margin: auto 0 0 12px;
+    color: var(--muted);
   }
 }
 </style>
