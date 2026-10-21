@@ -96,54 +96,62 @@ onBeforeUnmount(cancelConfirm)
 </script>
 
 <template>
-      <section class="history" :class="{ 'has-days': pastDays.length }">
+  <section class="history" :class="{ 'has-days': pastDays.length }">
     <div class="detail">
-    <div class="day-nav">
-      <button type="button" aria-label="Previous day" :disabled="!canGoBack" @click="go(-1)">‹</button>
-      <div class="day-title">
-        <strong>{{ isToday ? 'Today' : formatDay(selected) }}</strong>
-        <span v-if="isToday">{{ formatDay(selected) }}</span>
+      <div class="day-nav">
+        <button type="button" aria-label="Previous day" :disabled="!canGoBack" @click="go(-1)">‹</button>
+        <div class="day-title">
+          <strong>{{ isToday ? 'Today' : formatDay(selected) }}</strong>
+          <span v-if="isToday">{{ formatDay(selected) }}</span>
+        </div>
+        <button type="button" aria-label="Next day" :disabled="isToday" @click="go(1)">›</button>
       </div>
-      <button type="button" aria-label="Next day" :disabled="isToday" @click="go(1)">›</button>
-    </div>
 
-    <div class="day-total"><span class="number">{{ total }}</span> kcal</div>
+      <div class="day-total"><span class="number">{{ total }}</span> kcal</div>
 
-    <p v-if="error" class="notice error" role="alert">{{ error }}</p>
-    <p v-else-if="loading && !entries.length" class="notice">Loading…</p>
-    <p v-else-if="!entries.length" class="notice">Nothing logged for this day.</p>
-    <ul v-else class="entries">
-      <li v-for="e in entries" :key="e.id">
-        <div class="entry-main">
-          <span class="entry-name">{{ e.name }}</span>
-          <span class="entry-kcal">{{ e.calories }} kcal</span>
-        </div>
-        <div class="entry-meta">
-          <span v-if="e.serving">
-            {{ e.serving }}<template v-if="e.grams"> · {{ Math.round(e.grams) }} g</template>
-          </span>
-          <ConfidenceBadge :level="e.confidence" />
-        </div>
-        <p v-if="e.usda_description" class="entry-source">USDA: {{ e.usda_description }}</p>
-        <button
-          type="button"
-          class="delete"
-          :class="{ confirm: confirmingId === e.id }"
-          @click="onDelete(e)"
-        >
-          {{ confirmingId === e.id ? 'Tap again to delete' : 'Delete' }}
-        </button>
-      </li>
-    </ul>
+      <p v-if="error" class="notice error" role="alert">{{ error }}</p>
+      <p v-else-if="loading && !entries.length" class="notice">Loading…</p>
+      <p v-else-if="!entries.length" class="notice">Nothing logged for this day.</p>
+      <ul v-else class="entries">
+        <li v-for="e in entries" :key="e.id">
+          <div class="entry-main">
+            <span class="entry-name">{{ e.name }}</span>
+            <span class="entry-kcal">{{ e.calories }} kcal</span>
+          </div>
+          <div class="entry-meta">
+            <span v-if="e.serving">
+              {{ e.serving }}<template v-if="e.grams"> · {{ Math.round(e.grams) }} g</template>
+            </span>
+            <ConfidenceBadge :level="e.confidence" />
+          </div>
+          <p v-if="e.usda_description" class="entry-source">USDA: {{ e.usda_description }}</p>
+          <button
+            type="button"
+            class="delete"
+            :class="{ confirm: confirmingId === e.id }"
+            @click="onDelete(e)"
+          >
+            {{ confirmingId === e.id ? 'Tap again to delete' : 'Delete' }}
+          </button>
+        </li>
+      </ul>
     </div>
 
     <div v-if="pastDays.length" class="past">
       <h2>All days</h2>
       <ul>
         <li v-for="d in pastDays" :key="d.day">
-          <button type="button" :class="{ active: d.day === selected }" @click="selected = d.day">
+          <button
+            type="button"
+            :class="{ active: d.day === selected }"
+            :aria-current="d.day === selected ? 'true' : null"
+            @click="selected = d.day"
+          >
             <span>{{ d.day === today ? 'Today' : formatDay(d.day) }}</span>
-            <span>{{ d.total }} kcal</span>
+            <span class="row-end">
+              <span class="row-kcal">{{ d.total }} kcal</span>
+              <span class="chevron" aria-hidden="true">›</span>
+            </span>
           </button>
         </li>
       </ul>
@@ -158,6 +166,12 @@ onBeforeUnmount(cancelConfirm)
   padding: 16px;
 }
 
+.detail {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
 .day-nav {
   display: flex;
   align-items: center;
@@ -165,13 +179,15 @@ onBeforeUnmount(cancelConfirm)
 }
 
 .day-nav button {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   font-size: 1.5rem;
-  color: var(--accent);
-  background: var(--surface);
-  border: 1px solid var(--line);
+  line-height: 1;
+  color: var(--accent-text);
+  background: var(--card);
+  border: 0;
   border-radius: 50%;
+  box-shadow: var(--shadow);
   cursor: pointer;
 }
 
@@ -198,9 +214,11 @@ onBeforeUnmount(cancelConfirm)
 }
 
 .day-total .number {
-  font-size: 2.5rem;
+  font-size: 2.75rem;
   font-weight: 700;
-  color: var(--accent);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-text);
 }
 
 .notice {
@@ -221,14 +239,19 @@ onBeforeUnmount(cancelConfirm)
   padding: 0;
 }
 
-.entries {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+/* floating cards, like the chat */
+.entries,
+.past ul {
+  overflow: hidden;
+  background: var(--card);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
 }
 
 .entries li {
-  padding: 12px 14px;
+  padding: 14px 16px;
 }
 
 .entries li + li {
@@ -248,6 +271,7 @@ onBeforeUnmount(cancelConfirm)
 
 .entry-kcal {
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .entry-meta {
@@ -268,19 +292,17 @@ onBeforeUnmount(cancelConfirm)
 }
 
 .delete {
-  margin-top: 8px;
-  padding: 6px 12px;
+  margin-top: 6px;
+  padding: 4px 0;
   font-size: 0.85rem;
   color: var(--muted);
   background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 0;
   cursor: pointer;
 }
 
 .delete.confirm {
   color: var(--danger);
-  border-color: var(--danger);
   font-weight: 600;
 }
 
@@ -289,8 +311,8 @@ onBeforeUnmount(cancelConfirm)
 }
 
 .past h2 {
-  margin: 0 0 8px;
-  font-size: 0.85rem;
+  margin: 0 0 8px 6px;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
@@ -298,42 +320,57 @@ onBeforeUnmount(cancelConfirm)
 }
 
 .past li + li {
-  margin-top: 6px;
+  border-top: 1px solid var(--line);
 }
 
 .past button {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
-  padding: 10px 14px;
+  padding: 14px 16px;
   color: var(--ink);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  background: transparent;
+  border: 0;
+  text-align: left;
   cursor: pointer;
+}
+
+.past button:hover {
+  background: color-mix(in srgb, currentColor 5%, transparent);
 }
 
 .past button.active {
   background: var(--accent-soft);
-  border-color: var(--accent);
+}
+
+.row-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.row-kcal {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.chevron {
+  color: var(--muted);
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 /* computers: the list of days on the left, the chosen day on the right */
 @media (min-width: 900px) {
   .history {
-    padding: 24px 28px;
-  }
-
-  .detail {
-    width: 100%;
-    max-width: 720px;
-    margin: 0 auto;
+    padding: 4px;
   }
 
   .history.has-days {
     display: grid;
-    grid-template-columns: 300px minmax(0, 1fr);
-    gap: 32px;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 24px;
     align-items: start;
   }
 
