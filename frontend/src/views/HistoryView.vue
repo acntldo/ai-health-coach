@@ -96,7 +96,8 @@ onBeforeUnmount(cancelConfirm)
 </script>
 
 <template>
-  <section class="history">
+      <section class="history" :class="{ 'has-days': pastDays.length }">
+    <div class="detail">
     <div class="day-nav">
       <button type="button" aria-label="Previous day" :disabled="!canGoBack" @click="go(-1)">‹</button>
       <div class="day-title">
@@ -134,6 +135,7 @@ onBeforeUnmount(cancelConfirm)
         </button>
       </li>
     </ul>
+    </div>
 
     <div v-if="pastDays.length" class="past">
       <h2>All days</h2>
@@ -314,5 +316,37 @@ onBeforeUnmount(cancelConfirm)
 .past button.active {
   background: var(--accent-soft);
   border-color: var(--accent);
+}
+
+/* computers: the list of days on the left, the chosen day on the right */
+@media (min-width: 900px) {
+  .history {
+    padding: 24px 28px;
+  }
+
+  .detail {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .history.has-days {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+
+  .history.has-days .past {
+    grid-column: 1;
+    grid-row: 1;
+    margin-top: 0;
+  }
+
+  .history.has-days .detail {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+  }
 }
 </style>
