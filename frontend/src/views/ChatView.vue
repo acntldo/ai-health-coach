@@ -118,6 +118,9 @@ async function send() {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  max-width: 760px; /* a readable column on wide screens */
+  margin: 0 auto;
 }
 
 .messages {
