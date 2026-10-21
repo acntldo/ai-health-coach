@@ -1,9 +1,9 @@
-/* colors live in variables so the dark theme only has to swap them.
+/* colors live in variables so a theme only has to swap them.
    the palette follows ios: grouped gray background, white cards, hairline separators */
 :root {
   color-scheme: light dark;
 
-  --desk: #e5e5ea; /* behind the app on wide screens */
+  --desk: #e5e5ea;
   --bg: #f2f2f7;
   --surface: #ffffff;
   --ink: #000000;
@@ -27,8 +27,11 @@
   --low-ink: #8f3322;
 }
 
+/* dark follows the device setting, unless light was picked with the toggle */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
     --desk: #1a1a1c;
     --bg: #000000;
     --surface: #1c1c1e;
@@ -51,6 +54,37 @@
     --low-bg: #44231d;
     --low-ink: #f0a090;
   }
+}
+
+/* dark picked with the toggle. same values as above, css can't share them across selectors */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --desk: #1a1a1c;
+  --bg: #000000;
+  --surface: #1c1c1e;
+  --ink: #ffffff;
+  --muted: #a1a1a6;
+  --line: rgba(84, 84, 88, 0.6);
+  --accent: #2f7a54;
+  --accent-text: #5fbf8a;
+  --accent-ink: #ffffff;
+  --accent-soft: #1f3328;
+  --danger: #ff453a;
+  --bubble-other: #2c2c2e;
+  --bubble-other-ink: #ffffff;
+  --bar-bg: rgba(28, 28, 30, 0.82);
+
+  --high-bg: #1f3b2c;
+  --high-ink: #8fd4ac;
+  --medium-bg: #3d3216;
+  --medium-ink: #e8c766;
+  --low-bg: #44231d;
+  --low-ink: #f0a090;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
 }
 
 * {
