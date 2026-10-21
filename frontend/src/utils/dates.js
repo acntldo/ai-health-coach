@@ -25,3 +25,15 @@ export function shiftDay(dateString, offset) {
   date.setDate(date.getDate() + offset)
   return toDateString(date)
 }
+
+
+// the server sends utc times without a zone suffix, so one is added before parsing.
+// without it the browser would read them as local time and show the wrong hour
+export function parseServerTime(value) {
+  return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(value) ? value : `${value}Z`)
+}
+
+// "2:32 PM", in the viewer's own language and time zone
+export function formatTime(date) {
+  return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+}
