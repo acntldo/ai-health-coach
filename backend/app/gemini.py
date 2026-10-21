@@ -9,6 +9,8 @@ from .config import GEMINI_API_KEY, GEMINI_MODELS
 BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 OVERLOAD_STATUSES = {500, 502, 503, 504}
 ATTEMPTS_PER_MODEL = 2
+REQUEST_TIMEOUT = 25  # seconds for one request
+TOTAL_BUDGET = 45  # seconds across all models, serverless functions can't run forever
 
 logger = logging.getLogger(__name__)
 
@@ -32,17 +34,13 @@ def _build_contents(turns: list[tuple[str, str]]) -> list[dict]:
     return contents
 
 
-def _extract_text(resp: httpx.Response) -> str:
+def _extract_text(resp: httpx.Response) -> str | None:
     try:
-        resp.raise_for_status()
         parts = resp.json()["candidates"][0]["content"]["parts"]
-        # thinking parts are skipped, only the answer text is wanted
-        text = "".join(p["text"] for p in parts if "text" in p and not p.get("thought"))
-    except (httpx.HTTPError, KeyError, IndexError, ValueError) as exc:
-        raise GeminiError("The coach is unavailable right now") from exc
-    if not text:
-        raise GeminiError("The coach is unavailable right now")
-    return text
+    except (ValueError, KeyError, IndexError):
+        return None
+    # thinking parts are skipped, only the answer text is wanted
+    return "".join(p["text"] for p in parts if "text" in p and not p.get("thought")) or None
 
 
 def _call(system_prompt: str, contents: list[dict]) -> str:
@@ -54,29 +52,48 @@ def _call(system_prompt: str, contents: list[dict]) -> str:
         "contents": contents,
         "generationConfig": {"responseMimeType": "application/json"},
     }
+    started = time.monotonic()
     for model in GEMINI_MODELS:
+        reason = "unknown"
         for attempt in range(1, ATTEMPTS_PER_MODEL + 1):
+            remaining = TOTAL_BUDGET - (time.monotonic() - started)
+            if remaining <= 1:
+                raise GeminiError("The coach is taking too long, try again in a minute")
             try:
                 # the key goes in a header so it never shows up in a logged url
                 resp = httpx.post(
                     f"{BASE_URL}/{model}:generateContent",
                     headers={"x-goog-api-key": GEMINI_API_KEY},
                     json=body,
-                    timeout=20,
+                    timeout=min(REQUEST_TIMEOUT, remaining),
                 )
             except httpx.HTTPError as exc:
-                raise GeminiError("The coach is unavailable right now") from exc
+                reason = type(exc).__name__  # a timeout or dropped connection
+                break  # retrying the same model would only burn more time
 
-            if resp.status_code in (404, 429):
-                # retired or misspelled name, or this model's quota is used up.
-                # quotas are per model, so the next one may still have room
-                break
             if resp.status_code in OVERLOAD_STATUSES:
+                reason = f"HTTP {resp.status_code}"
                 if attempt < ATTEMPTS_PER_MODEL:
                     time.sleep(1)  # overload errors from google are usually brief
                 continue
-            return _extract_text(resp)
-        logger.warning("%s is overloaded or unavailable, trying the next model", model)
+            if resp.status_code in (404, 429):
+                # retired or misspelled name, or this model's quota is used up.
+                # quotas are per model, so the next one may still have room
+                reason = f"HTTP {resp.status_code}"
+                break
+            if resp.status_code != 200:
+                # a bad key or malformed request, another model won't help
+                logger.error("gemini rejected the request: HTTP %s", resp.status_code)
+                raise GeminiError("The coach is unavailable right now")
+
+            text = _extract_text(resp)
+            if text:
+                if model != GEMINI_MODELS[0]:
+                    logger.warning("answered by fallback model %s", model)
+                return text
+            reason = "empty answer"
+            break
+        logger.warning("%s skipped (%s), trying the next model", model, reason)
 
     raise GeminiError("The coach is unavailable right now, try again in a minute")
 
