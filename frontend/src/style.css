@@ -1,16 +1,23 @@
-/* colors live in variables so the dark theme only has to swap them */
+/* colors live in variables so the dark theme only has to swap them.
+   the palette follows ios: grouped gray background, white cards, hairline separators */
 :root {
   color-scheme: light dark;
 
-  --bg: #f6f4ee;
+  --desk: #e5e5ea; /* behind the app on wide screens */
+  --bg: #f2f2f7;
   --surface: #ffffff;
-  --ink: #1f2a24;
-  --muted: #66716b;
+  --ink: #000000;
+  --muted: #6c6c70;
+  --line: rgba(60, 60, 67, 0.18);
   --accent: #2f6f4f;
+  --accent-text: #2f6f4f; /* green used for text, lighter in dark mode for contrast */
   --accent-ink: #ffffff;
   --accent-soft: #e3efe8;
-  --line: #e4e1d8;
-  --danger: #b3412f;
+  --danger: #d70015;
+  --bubble-other: #e9e9eb;
+  --bubble-other-ink: #000000;
+  --bar-bg: rgba(249, 249, 249, 0.82);
+  --radius: 12px;
 
   --high-bg: #dff0e5;
   --high-ink: #1f5a3a;
@@ -22,15 +29,20 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #121a16;
-    --surface: #1b2520;
-    --ink: #e8efe9;
-    --muted: #9aa8a0;
+    --desk: #1a1a1c;
+    --bg: #000000;
+    --surface: #1c1c1e;
+    --ink: #ffffff;
+    --muted: #a1a1a6;
+    --line: rgba(84, 84, 88, 0.6);
     --accent: #2f7a54;
+    --accent-text: #5fbf8a;
     --accent-ink: #ffffff;
-    --accent-soft: #23352b;
-    --line: #2c3a33;
-    --danger: #e8806e;
+    --accent-soft: #1f3328;
+    --danger: #ff453a;
+    --bubble-other: #2c2c2e;
+    --bubble-other-ink: #ffffff;
+    --bar-bg: rgba(28, 28, 30, 0.82);
 
     --high-bg: #1f3b2c;
     --high-ink: #8fd4ac;
@@ -47,10 +59,14 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--desk);
   color: var(--ink);
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  line-height: 1.5;
+  /* renders as san francisco on iphone and mac, segoe ui on windows */
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button,
