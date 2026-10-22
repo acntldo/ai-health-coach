@@ -1,0 +1,31 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      # compose fills these from the .env file in the project root, if there is one
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODELS: ${GEMINI_MODELS:-}
+      USDA_API_KEY: ${USDA_API_KEY:-}
+      DEVICE_DAILY_LIMIT: ${DEVICE_DAILY_LIMIT:-20}
+      GLOBAL_DAILY_LIMIT: ${GLOBAL_DAILY_LIMIT:-200}
+      # four slashes: an absolute path inside the container
+      DATABASE_URL: sqlite:////data/coach.db
+      IN_DOCKER: "1"
+    volumes:
+      - coach-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  coach-data:
