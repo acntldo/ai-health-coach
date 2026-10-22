@@ -1,10 +1,10 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 import ChatView from './views/ChatView.vue'
 import HistoryView from './views/HistoryView.vue'
 
 export default createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes: [
     { path: '/', component: ChatView },
     { path: '/history', component: HistoryView },
