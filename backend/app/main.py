@@ -11,8 +11,10 @@ from .routers import chat, days, entries, messages
 
 logger = logging.getLogger(__name__)
 
-# fine at this size. a bigger app would use migrations instead
-Base.metadata.create_all(bind=engine)
+# local sqlite builds its tables when the app starts. a hosted database gets them from
+# `python -m app.create_tables`, run once, so cold starts never touch the schema
+if engine.url.get_backend_name() == "sqlite":
+    Base.metadata.create_all(bind=engine)
 
 
 @asynccontextmanager
