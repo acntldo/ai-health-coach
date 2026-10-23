@@ -1,8 +1,12 @@
 # AI Health Coach
 
-A chat app for tracking calories. Tell the coach what you ate. It looks the food up in the USDA FoodData Central database, estimates the portion, adds the calories to today's total and keeps a history by day.
+A chat app for tracking calories. Tell the coach what you ate. It looks the food up in the USDA FoodData Central database, estimates the portion, adds the calories to today's total and keeps a history by day. Logged foods can be deleted, and the app follows the device's light or dark setting (or a manual toggle).
 
-Stack: FastAPI, SQLite, Vue 3 (plain JavaScript), Google Gemini, USDA FoodData Central.
+Live demo: https://cortico-ai-health-coach.vercel.app
+
+The demo runs on free tiers. If the shared Gemini quota is used up, the coach says it is busy until the quota resets.
+
+Stack: FastAPI, Vue 3 (plain JavaScript), SQLite locally and in Docker, Postgres (Neon) when deployed, Google Gemini, USDA FoodData Central.
 
 ## Run with Docker
 
@@ -67,6 +71,15 @@ python -m pytest
 
 Gemini and USDA are faked in the tests, so no keys are needed and no quota is used.
 
+## Deploy (Vercel)
+
+The repo deploys to Vercel as one project with two services, set up in `vercel.json`: the Vue app at `/` and the FastAPI backend at `/api`. The deployed app uses Neon Postgres.
+
+1. Import the repo in Vercel.
+2. Add `GEMINI_API_KEY`, `GEMINI_MODELS` and `USDA_API_KEY` as environment variables, and a Neon Postgres database. The database adds `DATABASE_URL`.
+3. Create the tables once: from `backend`, run `python -m app.create_tables` with `DATABASE_URL` set to the database's direct (unpooled) address.
+4. Deploy.
+
 ## How the coach works
 
 1. Gemini reads the message, the last 10 messages and today's log, and lists any foods the user says they ate. If there is no food, it just replies.
@@ -83,32 +96,36 @@ The coach does not set calorie targets, diets or weight goals.
 
 - 20 messages per device per day and 200 in total per day (`DEVICE_DAILY_LIMIT`, `GLOBAL_DAILY_LIMIT`). Resets at midnight UTC.
 - The free Gemini tier has small quotas. A food message uses two Gemini calls.
+- On the live demo, everyone shares one Gemini quota. When it runs out, the coach says it is busy.
 - Messages are sent to Google Gemini. On the free tier, Google may use them to improve its models, so don't enter personal information.
 
 ## Structure
 
 ```
 backend/
+  main.py             entry file Vercel looks for
   app/
-    main.py         app setup
-    config.py       settings from .env
-    database.py     database connection
-    models.py       tables
-    schemas.py      response and request shapes
-    coach.py        the two-step pipeline
-    prompts.py      instructions given to Gemini
-    gemini.py       Gemini client, model fallback, retries
-    usda.py         USDA search
-    usage.py        daily limits
-    crud.py         queries
-    routers/        chat, days, entries, messages
+    main.py           app setup
+    config.py         settings from .env
+    database.py       database connection
+    models.py         tables
+    create_tables.py  creates the tables on a hosted database
+    schemas.py        response and request shapes
+    coach.py          the two-step pipeline
+    prompts.py        instructions given to Gemini
+    gemini.py         Gemini client, model fallback, retries
+    usda.py           USDA search
+    usage.py          daily limits
+    crud.py           queries
+    routers/          chat, days, entries, messages
   tests/
 frontend/
   src/
-    views/          ChatView.vue, HistoryView.vue
+    views/            ChatView.vue, HistoryView.vue
     components/
     api.js, device.js, store.js, theme.js
 docker-compose.yml
+vercel.json
 ```
 
 ## API
@@ -132,6 +149,8 @@ Every request except `/api/health` needs an `X-Device-ID` header.
 - **The browser sends its local date**, so a late meal isn't filed under tomorrow's UTC date.
 - **Models are a list in settings**, because Google renames and retires them, and the free quota is per model.
 - **Chat is saved on the server**, so it survives a refresh.
+- **SQLite locally and in Docker, Postgres on Vercel.** Vercel's file system is read-only, so the deployed app needs a hosted database. `DATABASE_URL` picks which one is used.
+- **Hash URLs** (`/#/history`), so refreshing a page works on static hosting without extra server rules.
 
 ## Assumptions
 
@@ -143,6 +162,5 @@ Every request except `/api/health` needs an `X-Device-ID` header.
 ## Feedback on the test
 
 - The instructions are split by role (Back End, Full Stack, Front End), and the AI Software Developer role isn't listed. It wasn't clear whether Docker and tests were required for it.
-- The AI project depends on an outside API. Free-tier limits and model names changed while I was building, and a lot of time went into 429 and 503 errors instead of the app. Saying whether a key is provided, or whether mock responses are acceptable, would help.
-- Docker on Windows needed WSL and virtualization settings. A note on expected setup time would help.
-- There is no suggested time budget.
+- The AI project heavily relies on an outside API, which created unexpected bottlenecks. Model names changed while I was building, and I ended up spending a huge chunk of my time just dealing with 429 and 503 errors instead of actually developing the app. Since I only had about eight active hours to dedicate to this, losing so much of that time to free-tier API limits made completing the project quite difficult.
+- I also ran into some hurdles getting Docker to work on Windows, as I had to troubleshoot my WSL and virtualization settings. A quick heads-up in the instructions about expected setup time for Windows users would be great so it doesn't eat into their actual coding time.
